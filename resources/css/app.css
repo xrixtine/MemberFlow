@@ -1,0 +1,242 @@
+@import 'tailwindcss';
+
+@source '../../storage/framework/views/*.php';
+@source "../**/*.blade.php";
+@source "../**/*.js";
+
+/*
+|--------------------------------------------------------------------------
+| MemberFlow design tokens (carried over from the TaskFlow design)
+|--------------------------------------------------------------------------
+| Utilities generated: bg-charcoal, text-lime, border-line, bg-canvas, ...
+*/
+@theme {
+    --font-sans: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+
+    --color-charcoal: #202623;
+    --color-charcoal-soft: #343c35;
+    --color-lime: #c8f27c;
+    --color-lime-dark: #b3e35e;
+    --color-lime-deep: #5d7f24;
+    --color-canvas: #f5f3ef;
+    --color-ink: #242b25;
+    --color-muted: #5f6862; /* AA contrast: 5.8:1 on white, 5.2:1 on canvas (was #7c857e, 3.8:1) */
+    --color-line: #e8e8e2;
+    --color-field: #f8f8f5;
+    --color-sidebar-text: #aeb8af;
+    --color-sidebar-label: #879188;
+}
+
+@layer base {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        @apply bg-canvas text-ink font-sans antialiased;
+    }
+
+    h1, h2, h3 {
+        @apply tracking-tight text-ink;
+    }
+
+    [x-cloak], [hidden] {
+        display: none !important;
+    }
+
+    /* Grid and flex children may shrink below their content width, so wide tables
+       scroll inside their own wrapper instead of widening the page on phones. */
+    .grid > *, .flex-1 {
+        min-width: 0;
+    }
+
+    /* Visible keyboard focus for every interactive element (buttons/inputs have their own rings). */
+    a:focus-visible, summary:focus-visible, [tabindex]:focus-visible,
+    input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible {
+        outline: 3px solid var(--color-lime-deep);
+        outline-offset: 2px;
+        border-radius: 6px;
+    }
+
+    #sidebar a:focus-visible, #sidebar button:focus-visible {
+        outline-color: var(--color-lime);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    /* ---- Layout ---------------------------------------------------- */
+    .eyebrow {
+        @apply text-xs font-bold uppercase tracking-[0.18em] text-muted;
+    }
+
+    .card {
+        @apply rounded-2xl border border-line bg-white p-6;
+    }
+
+    .card-title {
+        @apply text-lg font-bold text-ink;
+    }
+
+    .card-subtitle {
+        @apply mt-1 text-sm text-muted;
+    }
+
+    /* ---- Sidebar navigation ---------------------------------------- */
+    .nav-label {
+        @apply mb-3 mt-6 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-sidebar-label;
+    }
+
+    .nav-link {
+        @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-sidebar-text transition-colors hover:bg-charcoal-soft hover:text-white;
+    }
+
+    .nav-link-active {
+        @apply bg-charcoal-soft font-semibold text-lime hover:text-lime;
+    }
+
+    /* ---- Buttons --------------------------------------------------- */
+    /* Tailwind v4 cannot @apply a custom class, so variants share the base via grouped selectors. */
+    .btn, .btn-primary, .btn-dark, .btn-secondary, .btn-danger {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-lime/60 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-primary {
+        @apply bg-lime text-charcoal hover:bg-lime-dark;
+    }
+
+    .btn-dark {
+        @apply bg-charcoal text-white hover:bg-charcoal-soft;
+    }
+
+    .btn-secondary {
+        @apply border border-line bg-white text-ink hover:bg-field;
+    }
+
+    .btn-danger {
+        @apply bg-red-600 text-white hover:bg-red-700;
+    }
+
+    .btn-sm {
+        @apply px-3 py-1.5 text-xs;
+    }
+
+    /* ---- Forms ----------------------------------------------------- */
+    .form-label {
+        @apply mb-2 block text-sm font-bold text-ink;
+    }
+
+    .form-input {
+        @apply block w-full rounded-xl border border-line bg-field px-4 py-3 text-sm text-ink placeholder:text-muted/70 focus:border-lime-deep focus:outline-none focus:ring-4 focus:ring-lime/40;
+    }
+
+    .form-input-invalid {
+        @apply border-red-400 focus:border-red-500 focus:ring-red-200;
+    }
+
+    .form-hint {
+        @apply mt-1.5 text-xs text-muted;
+    }
+
+    .form-error {
+        @apply mt-1.5 text-xs font-medium text-red-600;
+    }
+
+    /* ---- Badges ---------------------------------------------------- */
+    .badge, .badge-green, .badge-amber, .badge-red, .badge-gray, .badge-blue, .badge-lime, .badge-charcoal {
+        @apply inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold;
+    }
+
+    .badge-green { @apply bg-[#e3f5db] text-[#39742b]; }
+    .badge-amber { @apply bg-[#fff1d6] text-[#855610]; }
+    .badge-red { @apply bg-red-100 text-red-700; }
+    .badge-gray { @apply bg-[#eef1e9] text-[#5b645d]; }
+    .badge-blue { @apply bg-sky-100 text-sky-800; }
+    .badge-lime { @apply bg-lime text-charcoal; }
+    .badge-charcoal { @apply bg-charcoal text-lime; }
+
+    /* ---- Alerts ---------------------------------------------------- */
+    .alert, .alert-success, .alert-error, .alert-warning, .alert-info {
+        @apply flex items-start gap-3 rounded-xl px-4 py-3 text-sm;
+    }
+
+    .alert-success { @apply bg-[#e9f7dc] text-[#366025]; }
+    .alert-error { @apply bg-red-50 text-red-700; }
+    .alert-warning { @apply bg-[#fff1d6] text-[#7a5210]; }
+    .alert-info { @apply bg-sky-50 text-sky-800; }
+
+    /* ---- Tables ---------------------------------------------------- */
+    .table-wrap {
+        @apply overflow-x-auto rounded-2xl border border-line bg-white;
+    }
+
+    .data-table {
+        @apply w-full min-w-[640px] text-left text-sm;
+    }
+
+    .data-table thead th {
+        @apply sticky top-0 border-b border-line bg-field px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted;
+    }
+
+    .data-table tbody td {
+        @apply border-b border-line px-4 py-3 align-middle;
+    }
+
+    .data-table tbody tr:last-child td {
+        @apply border-b-0;
+    }
+
+    .data-table tbody tr:hover {
+        @apply bg-field/60;
+    }
+}
+
+/* Printable pages (receipts, membership records) */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        background: #fff !important;
+    }
+
+    /* Reports and other app pages print without navigation, at full width. */
+    #main {
+        padding: 0 !important;
+    }
+
+    .card, .stat-print {
+        break-inside: avoid;
+        border-color: #ccc !important;
+    }
+
+    .data-table {
+        min-width: 0 !important;
+    }
+
+    .overflow-x-auto, .table-wrap {
+        overflow: visible !important;
+    }
+}
+
+/* Simple proportional bars for reports (no charting library; the number is always shown as text). */
+.meter {
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--color-line);
+    overflow: hidden;
+}
+
+.meter > span {
+    display: block;
+    height: 100%;
+    border-radius: 9999px;
+    background: var(--color-lime-deep);
+}
