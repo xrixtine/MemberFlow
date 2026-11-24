@@ -226,7 +226,7 @@ class MemberTaskTest extends EmailTestCase
 
     public function test_assignment_email_goes_to_the_member_with_app_url_links_and_no_private_details(): void
     {
-        config(['app.url' => 'http://192.168.100.4:8000']);
+        config(['app.url' => 'http://192.168.50.10:8000']);
         $alice = $this->memberAccount(['first_name' => 'Alice']);
         $related = Member::factory()->for($this->category, 'category')->for($this->gold, 'level')
             ->create(['first_name' => 'Rita', 'middle_name' => null, 'last_name' => 'Related', 'email' => self::email('rita.private'), 'phone' => '09171234567', 'address' => '99 Secret St']);
@@ -236,7 +236,7 @@ class MemberTaskTest extends EmailTestCase
         $mail = Mail::mailer('array')->getSymfonyTransport()->messages()->last()->getOriginalMessage();
         $html = (string) $mail->getHtmlBody();
         $this->assertSame($alice->email, $mail->getTo()[0]->getAddress());
-        $this->assertStringContainsString('http://192.168.100.4:8000/my/tasks/', $html);
+        $this->assertStringContainsString('http://192.168.50.10:8000/my/tasks/', $html);
         $this->assertStringNotContainsString('127.0.0.1', $html);
         foreach (['rita.private', '09171234567', '99 Secret St', 'Related', '₱'] as $private) {
             $this->assertStringNotContainsString($private, $html);

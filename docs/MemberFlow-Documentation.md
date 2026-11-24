@@ -3,7 +3,7 @@
 **MemberFlow: Membership Management and Transaction Processing System with Role-Based Task Management**
 Laravel 12 · PHP 8.2 · MariaDB 10.4 (MySQL) · Blade + Tailwind CSS v4 (Vite)
 
-Screenshots referenced below are in [`docs/screenshots/`](screenshots/). They show fictional demonstration data only.
+Screenshots referenced below are in [`docs/screenshots/`](screenshots/). They were taken on November 24, 2026 from the final Administrator–Member system, running on the separate test database with fictional demonstration data only. The mail settings shown use placeholder values (`smtp.example.test`, `memberflow@example.test`).
 
 ---
 
@@ -288,6 +288,7 @@ Concurrency: every state change runs in a database transaction with `SELECT … 
    - pending invitations are revoked;
    - an existing login keeps its sign-in email until the member opens a confirmation link sent **only to the new address while signed in**. Account ownership never moves silently.
 7. **Administrators** are created only by `php artisan memberflow:create-admin` (or the first-run seeder). There is no web page that creates administrators, and members can never become administrators.
+   - An existing administrator's sign-in email and password can be changed together with `php artisan memberflow:change-admin-credentials`. It sends a one-time code to the **new** address only, asks for the password at hidden prompts, and signs out every session of that administrator. It is audited as "Sign-in email changed" and "Password changed". Use `--dry-run` first; see `deployment.md` §4.
 8. **Staff retirement (R6).**
    - The former staff role was retired with `memberflow:retire-staff`: one staff account was linked to its member record, and one was retired as `legacy_staff`.
    - It ran as a dry run first, then for real; every change was audited, and a guarded reversal exists.
@@ -382,7 +383,7 @@ See [maps-and-weather.md](maps-and-weather.md).
 
 Full details: [testing-report.md](testing-report.md).
 
-1. **Automated tests** (PHPUnit, `php artisan test`): **575 tests, 3,742 assertions, all passing**, run only against `memberflow_testing`. They cover unit and feature tests for every module, role rule, isolation rule, report figure and integration, with faked mail and faked API responses.
+1. **Automated tests** (PHPUnit, `php artisan test`): **632 tests, 4,410 assertions, all passing** (latest verified baseline), run only against `memberflow_testing`. They cover unit and feature tests for every module, role rule, isolation rule, report figure and integration, with faked mail and faked API responses.
 2. **End-to-end workflows over real HTTP** (testing database, fictional data): **48 / 48 checks.**
    - A: public application → verification → activation → member login;
    - B: payment → approval → receipt;
@@ -398,7 +399,11 @@ Full details: [testing-report.md](testing-report.md).
    - real Chrome rendered 43 pages (admin, member, public) at 375, 768 and 1440 px: **0 horizontal overflow in 132 checks**;
    - the mobile menu works and keyboard focus is visible;
    - all text and badge colour pairs meet WCAG AA contrast.
-5. **Main database protection.** The R6 account migration (two user rows) is the only change ever made to `memberflow` business data by this project, and it was explicitly approved. Every other check confirmed `memberflow` unchanged.
+5. **Main database protection.** Only two explicitly approved operations ever changed `memberflow` account data:
+   - the R6 account migration (two user rows);
+   - the owner's run of `memberflow:change-admin-credentials` for the administrator account (one user row plus its audit entries).
+
+   No membership, transaction, payment or task record was changed by testing or maintenance. Every other check confirmed `memberflow` unchanged.
 
 ## 20. Known limitations
 
@@ -444,19 +449,20 @@ See [known-limitations.md](known-limitations.md). The main ones:
 5. **Payments** (`11`): list and filter. On a payment: **Receipt** (`12`), or **Void** with a reason (before approval).
 6. **Tasks** (`14`): create and assign to eligible members, reassign, reopen, archive, trash and restore; the timeline shows every update.
 7. **Users and invitations** (`15`): see every login account and activation invitation; deactivate or reactivate accounts. New administrators: `php artisan memberflow:create-admin` on the server.
-8. **Reports**: choose a period; read membership, transactions, collections, outstanding balances, tasks and task workload; **Print**.
-9. **Email log**: see each email's status; **Send test email to me**; **Retry** failed emails.
+8. **Reports** (`18`): choose a period; read membership, transactions, collections, outstanding balances, tasks and task workload; **Print**.
+9. **Email log** (`19`): see each email's status; **Send test email to me**; **Retry** failed emails.
+10. **On a phone** (`21`): the same pages adapt to small screens; open the navigation with **Menu**.
 
 ## 23. Member user guide
 
 1. **Activate your account.** Open the activation email ("Activate your MemberFlow member account"), choose a password, and you are signed in. Online applicants receive it right after verifying their email; walk-in members receive it from the membership office.
-2. **Dashboard:**
+2. **Dashboard** (screenshot `16`):
    - your membership status, validity dates and days remaining;
    - what you still need to do (for example "waiting for payment" or "awaiting approval") and whether renewal is available;
    - your balance;
    - your tasks, with counts, overdue items and deadlines;
    - recent activity, your notifications, and the office weather.
-3. **Membership:**
+3. **Membership** (`22`):
    - your details and email verification;
    - category, level and benefits;
    - application and renewal history;
@@ -464,7 +470,7 @@ See [known-limitations.md](known-limitations.md). The main ones:
    - **Print my record**;
    - your location on file and its weather, if you agreed to store it.
 4. **Payments:** total charges, total paid, balance due, every payment (voided ones are marked and not counted), and printable **receipts**.
-5. **My Tasks / Task history:** open a task, set status and progress, add a note, and **Save update**. Completing a task notifies the administrator. If your membership is not active, your tasks are read-only.
+5. **My Tasks / Task history** (`20`): open a task, set status and progress, add a note, and **Save update**. Completing a task notifies the administrator. If your membership is not active, your tasks are read-only.
 6. **Profile:** change your password. Your name and email are kept by the membership office. If they change your email, confirm the new address from the link sent to it while you are signed in.
 
 You only ever see your own membership, payments and tasks.

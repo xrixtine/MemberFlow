@@ -110,3 +110,90 @@ MemberFlow is a school project and has **not** been deployed publicly. A real de
 8. **Google Maps key:** restrict it to the HTTPS domain only, and replace `DEMO_MAP_ID` with your own Map ID (`GOOGLE_MAPS_MAP_ID`).
 9. **Headers:** add HSTS and a full Content-Security-Policy allowing the Google Maps origins.
 10. **Never** run `migrate:fresh`, `db:wipe` or the `DemoDataSeeder` in production. Deploy schema changes with `php artisan migrate --force` after a verified backup.
+
+## 7. Shared hosting: InfinityFree (free plan) preparation
+
+**Status:** the application is prepared, but **nothing has been deployed**. This setup suits a classroom demonstration with **fictional data only**. On this plan, `.env` has to sit inside the web root, and there is no cron or queue worker.
+
+### What the code already handles
+- **`?i=1` added by the host's browser check:** signed links (applicant verify/status, member email-change confirmation) ignore that one parameter. Any other change to a link still invalidates it (`config/memberflow.php` → `signature_ignored_query`).
+- **HTTPS behind the host's proxy:** `TRUSTED_PROXIES=*` makes Laravel trust `X-Forwarded-Proto`/`X-Forwarded-Port`, so asset, form and redirect URLs use `https://`. `X-Forwarded-Host` is never trusted. `FORCE_HTTPS=true` is an extra safety switch (`app/Support/HostingProxy.php`).
+- **No cron:** invitation expiry is enforced whenever an invitation is opened, and membership end dates are enforced for tasks and the member portal. Run **Transactions → Run expiry check** as an administrator before a demo to update the stored "Expired" statuses. Do not add a public URL that triggers it.
+- **No queue worker:** use `QUEUE_CONNECTION=sync`.
+
+### Production `.env` (write it from scratch; never upload your local `.env` or `.env.backup_*`)
+```
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://<your-subdomain>.infinityfreeapp.com
+APP_KEY=                       # generate a new one locally: php artisan key:generate --show (you run it)
+DB_HOST=<host from the control panel>
+DB_DATABASE=<if0_..._memberflow>
+DB_USERNAME=<if0_...>
+DB_PASSWORD=<from the control panel>
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
+CACHE_STORE=database
+QUEUE_CONNECTION=sync
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587                  # the only outbound SMTP port the host allows (STARTTLS)
+MAIL_SCHEME=null
+TRUSTED_PROXIES=*
+FORCE_HTTPS=true
+```
+Use **hosting-only credentials**: a separate Gmail App Password, and add `https://<your-subdomain>.infinityfreeapp.com/*` to the Google Maps key's referrer list. Revoking them later then doesn't affect your local copy.
+
+### Build the upload locally (no Composer or Artisan on the server)
+1. Copy the project to a separate folder, for example `C:\memberflow_deploy\`.
+2. In the copy, run `composer install --no-dev --optimize-autoloader` and `npm ci && npm run build`.
+3. Remove the following from the copy:
+   - `.env*` (except `.env.example`);
+   - `node_modules/`, `tests/`, `docs/` and `files and instructions/`;
+   - everything in `storage/logs/` except its `.gitignore`;
+   - `bootstrap/cache/config.php` if it exists (it holds absolute Windows paths).
+4. Put the new production `.env` into the copy. That's about 7,500 files, well below the host's limit of roughly 30,000.
+
+### Folder layout and `.htaccess` (the web root is fixed to `htdocs`)
+Upload the **whole** prepared copy directly into `htdocs/`, so that `htdocs/public/index.php` exists. Then create `htdocs/.htaccess`:
+```apache
+Options -Indexes
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Force HTTPS (the host's proxy reports the original scheme)
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    # Never serve dotfiles such as .env (certificate checks under .well-known are allowed)
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+    # Serve everything from public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+```
+As a second layer, put a one-line `.htaccess` containing `Require all denied` into each of: `app/`, `bootstrap/`, `config/`, `database/`, `resources/`, `routes/`, `storage/` and `vendor/`. Keep `public/.htaccess` unchanged.
+
+### Database (phpMyAdmin; never the main `memberflow` data)
+1. Locally, create a **separate** demo database (for example `memberflow_demo`) and fill it with fictional data:
+   - point a terminal at it (`$env:DB_DATABASE='memberflow_demo'` in PowerShell);
+   - run `php artisan migrate`;
+   - seed `CategorySeeder` and `LevelSeeder`;
+   - create the evaluation administrator with `php artisan memberflow:create-admin` (hidden password prompt);
+   - optionally run `DemoDataSeeder`;
+   - then `Remove-Item Env:DB_DATABASE`.
+2. Dump it without `--databases`: `mysqldump -u root --single-transaction --hex-blob --default-character-set=utf8mb4 memberflow_demo --result-file=memberflow_demo.sql`. Check it by restoring it into a scratch database first.
+3. Import the file into the host database in phpMyAdmin.
+4. Later schema changes: run `php artisan migrate --pretend` on a local copy at the same version, review the SQL, and run it in phpMyAdmin.
+
+### Check after upload
+- `https://<site>/.env`, `/storage/logs/laravel.log`, `/composer.json`, `/vendor/autoload.php` and `/artisan` must all return **403 or 404**.
+- The site loads over `https://`, and its CSS/JS load without mixed-content warnings.
+- Sign in as the evaluation administrator. **Email log → Send test email to me** shows "Accepted by SMTP server", and the email arrives.
+- The map and weather appear. Open a verification link from a fresh browser (it gets `?i=1` added) and it still works.
+- Errors: read `storage/logs/laravel.log` with the File Manager. Never set `APP_DEBUG=true` on the host.
+
+### Rollback
+Keep the previous upload folder and the previous SQL dump. To roll back, re-upload the previous files and re-import the previous dump into a fresh host database. The local main database is never involved.

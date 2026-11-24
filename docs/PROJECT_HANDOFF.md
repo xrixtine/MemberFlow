@@ -1,6 +1,6 @@
 # MemberFlow — Technical handoff
 
-**Written:** November 24, 2026, after revision R8, the administrator credential change, and an unfinished InfinityFree audit.
+**Written:** November 24, 2026, after revision R8, the administrator credential change and an unfinished InfinityFree audit. **Updated** the same day after the initial GitHub commit and the privacy/documentation cleanup.
 **Readers:** a developer or Claude session continuing this project with no earlier context. Read this file first, then the documents in §20.
 
 > **This file contains no secrets.** It has no passwords, API keys, `APP_KEY`, SMTP credentials, tokens, `.env` values or private database records. The administrator's sign-in email is deliberately left out. Ask the project owner for any of these; never ask them to paste one into a chat.
@@ -16,10 +16,11 @@
 | Member accounts: activation invitations, member portal, member tasks | **Complete** |
 | Gmail SMTP | **Verified live** in Phase 7b (test email confirmed in the inbox). Member activation and email-change emails were tested only with fake mail and log mode |
 | Google Maps and OpenWeather | **Verified live** (R7, R8) on `127.0.0.1` and on the owner's LAN address |
-| Automated tests | **623 passed, 4,371 assertions** (last full run Nov 24, 2026, on `memberflow_testing`) |
-| Administrator credential change (`memberflow:change-admin-credentials`) | **Implemented and tested.** The owner ran it against the main database and confirmed the new sign-in works. The read-only post-change verification was **interrupted and not finished** (§14) |
-| InfinityFree hosting | **Not deployed.** The compatibility audit was **in progress** when work stopped. Findings so far are in §16; two code changes are needed first |
-| GitHub | **Not pushed.** The project folder is not yet a Git repository. `.gitignore` was hardened (§19) |
+| Automated tests | **632 passed, 4,410 assertions** (last full run Nov 24, 2026, on `memberflow_testing`) |
+| Administrator credential change (`memberflow:change-admin-credentials`) | **Done and verified.** The owner ran it against the main database and confirmed the new sign-in works. The read-only post-check passed (§14) |
+| InfinityFree hosting | **Prepared, not deployed.** Both required code changes are implemented and tested (§16). The step-by-step procedure is in `deployment.md` §7. Deploying needs the owner's hosting account and approval |
+| GitHub | **Public repository** `github.com/xrixtine/MemberFlow`, branch `main`. On Nov 24, 2026 the history was rewritten (owner-approved force-push) so every commit uses the owner's GitHub no-reply address. Screenshots are included after their privacy review (§19) |
+| Screenshots | **Retaken Nov 24, 2026** from the final Administrator–Member system on the test database with fictional data (22 images). Privacy-reviewed. Originals kept outside the repository |
 
 ---
 
@@ -227,7 +228,7 @@ Every schema change and data migration on the main database ran only after expli
 
 | Command | Purpose |
 |---|---|
-| `php artisan config:clear && php artisan test` | Full suite. **623 tests, 4,371 assertions, all passing** (Nov 24, 2026) |
+| `php artisan config:clear && php artisan test` | Full suite. **632 tests, 4,410 assertions, all passing** (Nov 24, 2026) |
 | `php artisan test --filter=ChangeAdminCredentials` | One area (also `tests/Feature/<Area>`) |
 | `vendor/bin/pint --test` | Code style (passes) |
 | `npm run build` | Front-end build (passes) |
@@ -237,7 +238,7 @@ Every schema change and data migration on the main database ran only after expli
   - `phpunit.xml` forces it with `force="true"`;
   - `tests/TestCase::setUpTraits()` calls `DatabaseSafety::assertSafeForTests()` before any database trait runs.
 - Mail is faked or uses in-memory transports, and weather uses `Http::fake()`. **No test contacts Gmail, Google or OpenWeather.**
-- Breakdown by area, plus E2E, concurrency and responsive results: `docs/testing-report.md`. That report still says 575; the 48 tests added after R8 bring the total to 623.
+- Breakdown by area, plus E2E, concurrency and responsive results: `docs/testing-report.md`. It records the 623-test baseline (550 test methods) and keeps the R8 E2E, concurrency and responsive results.
 
 ## 12. Local XAMPP and MariaDB configuration
 
@@ -287,7 +288,12 @@ Every schema change and data migration on the main database ran only after expli
   2. Dry run passed: only User #1 affected, 1 session to sign out.
   3. The **owner ran the command** in their own terminal.
   4. The owner then **confirmed that sign-in with the new credentials works**.
-- **Still pending:** the developer's read-only post-check (User #1 role/active unchanged, old email gone, 2 audit rows, 1 delivery to the new address only, sessions cleared, business tables unchanged) was **interrupted and not completed**. Run it before relying on those points.
+- **Read-only post-check: passed.**
+  - Only User #1's email, password, `email_verified_at`, `remember_token` and `updated_at` changed.
+  - Role, active status and member link are unchanged, and it is still the only active administrator.
+  - Exactly 2 audit rows were written, and 1 code email went to the new address only.
+  - All earlier sessions are gone, and no account uses the old email.
+  - Every membership, transaction, payment and task table is unchanged.
 - **Professor/evaluator member view:** activate a member account for a fictional member that uses a Gmail "+" alias of a test inbox (`docs/deployment.md` §4). Hand passwords over privately.
 - `.env` still holds the old `MEMBERFLOW_ADMIN_EMAIL`. It is harmless because the seeder refuses when an admin exists, but the owner may update it.
 
@@ -305,14 +311,16 @@ See `docs/known-limitations.md`. Key points:
 
 **Not yet verified manually:**
 - a hands-on session on a physical phone;
-- live Gmail delivery of activation, email-change and admin-code emails;
-- the interrupted post-check in §14;
+- live Gmail delivery of activation and email-change emails (the administrator code email was delivered: it is recorded as sent, and the owner's run succeeded);
 - production HTTPS hosting.
 
-**Documentation follow-ups:**
-- `docs/testing-report.md`, `MemberFlow-Documentation.md` §19 and `rubric-matrix.md` still say 575 tests (now 623). §19 also says R6 was the only change to main business data; the administrator credential change came later.
-- Screenshots `15-invitations.png`, `16-staff-dashboard.png` and `20-staff-task-update.png` show the retired staff era.
-- `19-email-log.png` shows the owner's real Gmail address as the "From" sender (§19).
+**Documentation cleanup (done Nov 24, 2026, after the initial commit):**
+- Test counts updated to 632 tests / 4,410 assertions in the README, testing report, documentation §19, rubric matrix and demo script. The testing report's area table totals 559 test methods.
+- Documentation §19 and the testing report now record both approved account changes to the main database (R6 and the administrator credential change).
+- All screenshots were retaken from the final system. The staff-era images were replaced by `15-users.png`, `16-member-dashboard.png` and `20-member-task-update.png`, and `22-member-membership.png` was added. The user guides reference them.
+- The owner's home LAN address in the documentation was replaced with the placeholder `<PC-LAN-IP>`. A few **tests** still use it as a sample host value; tests were intentionally left unchanged.
+
+- The `/login` subtitle now reads "Administrators and members use the same sign-in page…". `AuthenticationTest` checks that it never mentions staff, and `01-login.png` was retaken.
 
 ## 16. InfinityFree hosting (planned; audit unfinished; **nothing deployed**)
 
@@ -342,13 +350,13 @@ The free-plan restrictions below come from InfinityFree forum and staff posts. R
 | Gmail | Port 587 STARTTLS matches the current config. It still needs a live test on the host |
 | Maps | Works in the browser. The owner must add the hosted `https://<domain>/*` referrer to the key (provider setting; owner's decision) |
 | OpenWeather | Outbound HTTPS is probably allowed; verify on the host |
-| **Code change C1 (required)** | The `?i=1` redirect would make relative-signed links (applicant verify/status, member email-change confirm) fail signature checks. Fix: add `ignoreQuery: ['i']` to `URL::hasCorrectSignature(...)` in `ApplicantVerificationService` and `AccountEmailController`, with tests. Invitation links use path tokens and are unaffected |
-| **Code change C2 (required)** | Behind the nginx proxy, Laravel will think requests are HTTP. That gives `http://` asset URLs (mixed content) and http form actions. Fix: trust the hosting proxy for `X-Forwarded-Proto` (`bootstrap/app.php`, driven by config, not `env()` in code) and, if needed, force the https scheme when `APP_URL` is https. Also check whether `$request->ip()` is per-visitor or the proxy's address, because the public apply, resend and login throttles are keyed by IP |
+| **Code change C1: done** | `URL::hasCorrectSignature(..., ignoreQuery: config('memberflow.signature_ignored_query'))` (`['i']`) in `ApplicantVerificationService::linkProblem()` and `AccountEmailController::confirm()`. Tests show links work with `&i=1`, while a changed signature or expiry, or any other extra parameter, is still rejected. Invitation links use path tokens and were never affected |
+| **Code change C2: done** | `App\Support\HostingProxy::apply()`, called from `AppServiceProvider::boot()`, configures Laravel's global `TrustProxies` middleware from `TRUSTED_PROXIES` (`*` or IPs). It trusts `X-Forwarded-Proto`/`Port` only, never `X-Forwarded-Host`. `X-Forwarded-For` is trusted only with `TRUSTED_PROXY_FORWARDED_FOR=true`; `FORCE_HTTPS=true` forces https URLs. Nothing changes when these are unset. `HostingProxyTest` covers each case. **Still to check on the real host:** whether `$request->ip()` is per visitor (the IP-keyed throttles depend on it) before enabling `TRUSTED_PROXY_FORWARDED_FOR` |
 | Artisan-free database | Build a **separate demo database** locally (for example `memberflow_demo`): migrate, seed categories and levels, create the single evaluation admin with `memberflow:create-admin` (hidden prompt), then optionally `DemoDataSeeder` (fictional `@example.test` people). Check its integrity, dump it without `--databases`, and import it through phpMyAdmin into the host database. **Never upload the main `memberflow` data.** Later schema changes: generate SQL with `php artisan migrate --pretend` on a local copy, review it, and run it in phpMyAdmin |
 | Production `.env` | Write it from scratch. Never upload the local `.env` or the `.env.backup_*` file. Use `APP_ENV=production`, `APP_DEBUG=false`, HTTPS `APP_URL` and a new `APP_KEY` (old signed links stop working, which is acceptable for a new database). Do not upload `bootstrap/cache/config.php` (it holds absolute Windows paths), `storage/logs/*`, `tests/`, `docs/`, `node_modules/` or the course PDFs |
 | Rollback | Keep the previous upload and SQL dump. Re-upload the previous files and re-import the previous dump into a fresh host database. The local main database is never involved |
 
-**Recommendation status:** a verdict was **not** finalised. The working view was: **GO only for a fictional-data classroom demonstration, after C1 and C2 are implemented and tested and the post-upload security checks pass; NO-GO for real member data** (secrets sit inside the web root, and there is no cron or worker). Finish the audit before any deployment, and get the owner's approval.
+**Recommendation:** **GO for a fictional-data classroom demonstration** now that C1 and C2 are implemented and tested, provided the post-upload checks in `deployment.md` §7 pass on the real host. **NO-GO for real member data**: secrets sit inside the web root behind `.htaccess` only, and there is no cron or worker. Deploying still needs the owner's hosting account and explicit approval.
 
 ## 17. Resuming in a new Claude account
 
@@ -357,13 +365,11 @@ The free-plan restrictions below come from InfinityFree forum and staff posts. R
    - `php -v` (8.2.x);
    - MariaDB running on 127.0.0.1:3306;
    - `php artisan migrate:status` (19 Ran);
-   - `php artisan config:clear && php artisan test` (623 passing).
+   - `php artisan config:clear && php artisan test` (632 passing).
 3. Ask the owner which task to continue. Open items, roughly in priority order:
-   1. the §14 post-check (read-only);
-   2. the documentation follow-ups in §15;
-   3. the screenshot privacy fix;
-   4. finishing the InfinityFree audit and implementing C1 and C2 with tests;
-   5. GitHub setup (§19).
+   1. deploying to InfinityFree with the owner (`deployment.md` §7), only after their approval;
+   2. the remaining manual checks in §15 (physical phone, live Gmail delivery of member emails);
+   3. making the GitHub repository private, if the owner wants that (owner's GitHub settings, §19).
 4. Before **any** change to the main database, follow §13 and §18 and get explicit approval for the exact procedure.
 5. Work in phases and stop at each phase boundary for owner approval. This is how R0–R8 were run, and the owner expects it.
 
@@ -392,7 +398,13 @@ The free-plan restrictions below come from InfinityFree forum and staff posts. R
 ## 19. GitHub, dependencies and environment
 
 **State:**
-- The folder is **not a Git repository yet**, and nothing has been pushed.
+- **Public** repository `github.com/xrixtine/MemberFlow` (remote `origin`, branch `main`).
+  - The owner pushed the initial commit ("Initial MemberFlow project with complete Administrator-Member system", 367 files).
+  - With the owner's approval, its author email was rewritten to the owner's GitHub no-reply address and force-pushed on Nov 24, 2026.
+  - The privacy, documentation and hosting-compatibility work followed as a second commit.
+  - The repository's local `user.email` is set to the no-reply address, so later commits use it too.
+- No commit contains `.env` files, SQL dumps, logs, `vendor/`, `node_modules/` or course PDFs. Scans of the tree found no API keys, `APP_KEY` values or real account email addresses.
+- Screenshots are included. The owner's temporary `/docs/screenshots/` ignore rule was removed after their privacy review.
 - `.gitignore` was hardened on Nov 24, 2026 to exclude:
   - every `.env*` file except `.env.example`;
   - `*.sql`, dumps and checksum files;
@@ -400,22 +412,20 @@ The free-plan restrictions below come from InfinityFree forum and staff posts. R
   - `bootstrap/cache/*.php`;
   - keys and certificates;
   - `.claude/settings.local.json`;
+  - the professor's course materials (`/files and instructions/`, kept locally);
   - backup, temporary and OS files;
   - plus the Laravel defaults (`vendor`, `node_modules`, `public/build`, `public/hot`, `.phpunit.cache`, IDE folders).
-- A dry listing with a throwaway Git directory (no `.git` created in the project) found **391 commit candidates**.
-  - Secret scan of those files: no Google API keys, no `APP_KEY` values and no real App Passwords. Test files contain obvious placeholders such as `abcd efgh ijkl mnop`.
-  - The only Gmail addresses are package authors in `composer.lock` and `yourtest+…` / `your.address@…` placeholders.
+- Test files contain only obvious credential placeholders such as `abcd efgh ijkl mnop`. The only Gmail addresses in tracked files are package authors in `composer.lock` and `yourtest+…` / `your.address@…` placeholders.
 
-**Upload risks (decide before the first push):**
-1. **`docs/screenshots/19-email-log.png` shows the owner's real Gmail address** in the "Mail configuration" panel. Retake it, blur it, or exclude it.
-2. **`files and instructions/`** holds the professor's four course PDFs. Publishing them may not be allowed; exclude them or keep the repository **private**.
-3. `docs/lan-demo.md` and some tests contain the owner's private LAN address (`192.168.x.x`). The risk is low, but it reveals home-network details.
-4. Only screenshots 15 and 19 were inspected visually. Review the others for real names or emails before a public push.
-5. Use a **private** repository unless the owner decides otherwise.
+**Privacy status:**
+1. **Screenshots:** all 22 images are fictional-data captures from the final system. They passed a text scan for `.env` values, Gmail addresses and signed/token links, and 12 were also checked visually. The original set, including one that showed the owner's real Gmail address, is in `C:\memberflow_backups\screenshots_pre_R8_original_20261124\` (checksummed) and was never committed.
+2. **Commit author email:** every commit on `main` uses the owner's GitHub no-reply address (history rewritten with approval). GitHub may keep the replaced commit reachable by its old ID for a while; the owner can ask GitHub Support to purge cached views if needed. Turning on GitHub → Settings → Emails → "Keep my email addresses private" also blocks future pushes that would expose the real address.
+3. **LAN address:** the docs use `<PC-LAN-IP>`, and the tests use the generic sample `192.168.50.10`. The rewritten first commit still contains the owner's private LAN address in its content (low risk: a private, non-routable address).
+4. **Repository visibility:** the repository is **public** (checked through GitHub's public API). Making it private is an owner setting (GitHub → repository → Settings → General → Danger Zone → Change visibility).
 
 **Setup on a new machine:**
 ```
-git clone <private-repo-url> laravelproject_Sarzuelo
+git clone https://github.com/xrixtine/MemberFlow.git laravelproject_Sarzuelo
 cd laravelproject_Sarzuelo
 composer install
 npm ci && npm run build
@@ -432,12 +442,11 @@ php artisan key:generate          # ONLY for a fresh environment; it invalidates
 
   `phpunit.xml` forces the database and mailer anyway.
 
-**First commit checklist:**
-1. `git init -b main`.
-2. `git status --ignored`: confirm `.env*`, `storage/logs`, `vendor` and `node_modules` are ignored.
-3. `git add -A --dry-run` and review the list.
-4. Resolve the upload risks above.
-5. Commit, add the **private** remote, and push. Pushing happens only after the owner approves.
+**Checklist for every later commit:**
+1. `git status --ignored`: confirm `.env*`, `storage/logs`, `vendor`, `node_modules` and `files and instructions/` are ignored.
+2. `git add -A --dry-run` and review the list.
+3. Scan the staged files for keys, real email addresses and personal data.
+4. Commit and push only after the owner approves.
 
 ## 20. Document map
 

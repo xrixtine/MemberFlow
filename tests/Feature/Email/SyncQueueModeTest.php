@@ -146,20 +146,20 @@ class SyncQueueModeTest extends EmailTestCase
 
     public function test_public_application_and_invitation_links_work_in_sync_mode(): void
     {
-        config(['app.url' => 'http://192.168.100.4:8000']);
+        config(['app.url' => 'http://192.168.50.10:8000']);
 
         // Public application: verification email with LAN links, sent at once.
         $this->post('http://127.0.0.1:8000/apply', $this->applicationPayload())->assertRedirect(route('apply.submitted'));
         $html = Mail::mailer('array')->getSymfonyTransport()->messages()->last()->getOriginalMessage()->getHtmlBody();
-        $this->assertStringContainsString('http://192.168.100.4:8000/apply/verify/', $html);
-        $this->assertStringContainsString('http://192.168.100.4:8000/apply/status/', $html);
+        $this->assertStringContainsString('http://192.168.50.10:8000/apply/verify/', $html);
+        $this->assertStringContainsString('http://192.168.50.10:8000/apply/status/', $html);
         $this->assertStringNotContainsString('127.0.0.1', $html);
         $this->assertSame(EmailDeliveryStatus::Logged, EmailDelivery::where('notification', 'VerifyApplicantEmail')->sole()->status);
 
         // Member activation invitation: single-use link that opens the activation page.
         $this->inviteMember(self::email('sync.invitee'), 'Sync Invitee');
         $html = Mail::mailer('array')->getSymfonyTransport()->messages()->last()->getOriginalMessage()->getHtmlBody();
-        $this->assertMatchesRegularExpression('#http://192\.168\.100\.4:8000/invitations/[A-Za-z0-9]{64}#', $html);
+        $this->assertMatchesRegularExpression('#http://192.168.50.10:8000/invitations/[A-Za-z0-9]{64}#', $html);
         preg_match('#/invitations/[A-Za-z0-9]{64}#', $html, $m);
         auth()->logout();
         $this->get($m[0])->assertOk()->assertSee('Activate your account');

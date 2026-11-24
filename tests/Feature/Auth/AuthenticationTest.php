@@ -14,7 +14,9 @@ class AuthenticationTest extends TestCase
     {
         $this->get('/login')
             ->assertOk()
-            ->assertSee('Sign in to MemberFlow');
+            ->assertSee('Sign in to MemberFlow')
+            ->assertSee('Administrators and members use the same sign-in page.')
+            ->assertDontSee('staff');
     }
 
     public function test_administrator_can_log_in_and_lands_on_admin_dashboard(): void

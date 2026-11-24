@@ -61,7 +61,7 @@ class ApplicantVerificationService
      */
     public function linkProblem(Request $request, ?Member $member, string $hash): ?string
     {
-        if (! URL::hasCorrectSignature($request, absolute: false)) {
+        if (! URL::hasCorrectSignature($request, absolute: false, ignoreQuery: (array) config('memberflow.signature_ignored_query', []))) {
             return 'invalid';
         }
         if (! URL::signatureHasNotExpired($request)) {

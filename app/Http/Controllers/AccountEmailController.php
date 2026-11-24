@@ -23,7 +23,8 @@ class AccountEmailController extends Controller
 
     public function confirm(Request $request, string $user, string $hash): Response|RedirectResponse
     {
-        if (! URL::hasCorrectSignature($request, absolute: false) || ! URL::signatureHasNotExpired($request)) {
+        $ignore = (array) config('memberflow.signature_ignored_query', []);
+        if (! URL::hasCorrectSignature($request, absolute: false, ignoreQuery: $ignore) || ! URL::signatureHasNotExpired($request)) {
             return response()->view('auth.invitation-invalid', ['message' => 'This confirmation link is invalid or has expired. Use "Resend confirmation" on your dashboard to get a new one.'], 403);
         }
         if ((int) $user !== (int) $request->user()->id) {

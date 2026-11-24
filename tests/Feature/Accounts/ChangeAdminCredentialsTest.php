@@ -298,7 +298,9 @@ class ChangeAdminCredentialsTest extends TestCase
         // A real signed-in browser session, stored in the database.
         $this->post(route('login'), ['email' => self::OLD_EMAIL, 'password' => self::OLD_PASSWORD]);
         $this->assertAuthenticatedAs($this->admin);
-        $sessionId = DB::table('sessions')->where('user_id', $this->admin->id)->orderByDesc('last_activity')->value('id');
+        // The real login session, not the two fixture rows added in setUp() (they can share the same second).
+        $sessionId = DB::table('sessions')->where('user_id', $this->admin->id)
+            ->whereNotIn('id', ['admin-session-1', 'admin-session-2'])->value('id');
         $this->assertNotNull($sessionId);
         $this->assertSame(3, DB::table('sessions')->where('user_id', $this->admin->id)->count());
 

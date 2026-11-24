@@ -1,7 +1,7 @@
 <x-layouts.guest title="Sign in">
     <p class="eyebrow mb-2">Welcome back</p>
     <h1 class="text-3xl font-bold">Sign in to MemberFlow</h1>
-    <p class="mt-2 text-sm text-muted">Administrators and staff use the same sign-in page. Accounts are created by invitation only.</p>
+    <p class="mt-2 text-sm text-muted">Administrators and members use the same sign-in page. Member accounts are activated from an invitation email.</p>
 
     <form method="POST" action="{{ route('login.store') }}" class="mt-8 space-y-5" novalidate>
         @csrf

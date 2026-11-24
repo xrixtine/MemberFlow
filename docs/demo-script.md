@@ -11,7 +11,7 @@ About **25 minutes**, 22 steps. All people and records are **fictional**. Each s
    cd C:\xampp\htdocs\laravelproject_Sarzuelo
    php artisan config:clear
    npm run build
-   php artisan test          # expect: 575 passed (uses memberflow_testing only)
+   php artisan test          # expect: 632 passed (uses memberflow_testing only)
    ```
 3. **Back up the database** (see `deployment.md` §3) before adding any demo data.
 4. **Demo data (optional):** `php artisan db:seed --class=DemoDataSeeder` adds 12 fictional members (one ready to renew, one expired), **2 demo member logins** and 5 tasks to the **main** database. It is additive and cannot be undone automatically, so decide first. Note the demo member password it prints once.
@@ -63,7 +63,7 @@ About **25 minutes**, 22 steps. All people and records are **fictional**. Each s
 
 ### Closing (1 minute)
 Mention testing:
-- 575 automated tests;
+- 632 automated tests (4,410 assertions);
 - 48 end-to-end checks over real HTTP;
 - concurrency checks;
 - 132 responsive checks;

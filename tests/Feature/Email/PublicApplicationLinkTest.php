@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Notification;
  */
 class PublicApplicationLinkTest extends EmailTestCase
 {
-    private const LAN = 'http://192.168.100.4:8000';
+    private const LAN = 'http://192.168.50.10:8000';
 
     private const LOCAL = 'http://127.0.0.1:8000';
 
@@ -75,7 +75,7 @@ class PublicApplicationLinkTest extends EmailTestCase
         [$verifyUrl, $text] = $this->verificationMail($member);
         preg_match('#'.preg_quote(self::LAN, '#').'(/apply/status/\S+)#', $text, $status);
 
-        // Opened on another device on the LAN (Host: 192.168.100.4:8000).
+        // Opened on another device on the LAN (Host: 192.168.50.10:8000).
         $this->get(self::LAN.$this->pathAndQuery($verifyUrl))->assertOk()->assertSee('Your email is verified');
         $this->assertNotNull($member->fresh()->email_verified_at);
         $this->get(self::LAN.$status[1])->assertOk()->assertSee('Hello, Lea');

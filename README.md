@@ -102,7 +102,7 @@ php artisan test
 
 Tests always use the separate `memberflow_testing` database (forced in `phpunit.xml` and checked by `tests/TestCase.php`). Destructive commands (`migrate:fresh`, `db:wipe`, …) are refused against any other database.
 
-**Final result: 575 tests, 3,742 assertions, all passing.** See [docs/testing-report.md](docs/testing-report.md).
+**Latest verified baseline: 632 tests, 4,410 assertions, all passing** (Nov 24, 2026). See [docs/testing-report.md](docs/testing-report.md).
 
 ## Configuration summary
 

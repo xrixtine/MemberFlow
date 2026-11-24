@@ -7,7 +7,7 @@ Final status after revision R8 (November 24, 2026).
 | Integration | Status | What was actually verified |
 |---|---|---|
 | Gmail SMTP | **Verified live** (Phase 7b) | A test email was accepted by Gmail and confirmed in the inbox. The member-account activation and email-change emails were tested with the in-memory mailer and log mode only; confirm one of each in the rehearsal with a Gmail "+" alias |
-| Google Maps JavaScript API | **Verified live** (R7, R8) | Map loads with no provider errors on `127.0.0.1` and on the LAN address `http://192.168.100.4:8000`, so the API is enabled and billing is active. Click, drag, manual entry, clear, current location, consent, and the admin and member read-only maps were all checked in Chrome. A rejected key shows "unavailable" and manual entry keeps working |
+| Google Maps JavaScript API | **Verified live** (R7, R8) | Map loads with no provider errors on `127.0.0.1` and on the LAN address `http://<PC-LAN-IP>:8000`, so the API is enabled and billing is active. Click, drag, manual entry, clear, current location, consent, and the admin and member read-only maps were all checked in Chrome. A rejected key shows "unavailable" and manual entry keeps working |
 | OpenWeather Current Weather | **Verified live** (R7, R8) | Real observations; displayed values match the provider response; caching; a rejected key shows an honest message |
 
 ## 2. Other verification not performed
@@ -41,6 +41,13 @@ Final status after revision R8 (November 24, 2026).
   - former staff are labelled "Former staff".
 - **No full Content-Security-Policy** beyond `frame-ancestors` (Google Maps needs several script origins). Recommended for production.
 - **Hosting:** the app runs with `php artisan serve` over HTTP. Production needs HTTPS and the rest of the checklist in `deployment.md` §6.
+- **InfinityFree free hosting** (prepared, not deployed; `deployment.md` §7):
+  - the code handles the host's `?i=1` and its HTTPS proxy;
+  - the plan still puts `.env` inside the web root, protected only by `.htaccess`;
+  - it has no cron or queue worker: run **Run expiry check** manually, and keep `QUEUE_CONNECTION=sync`;
+  - its browser check blocks non-browser clients, such as API tools.
+
+  Use it for fictional-data demonstrations only.
 
 ## 4. Things to remember on demo day
 

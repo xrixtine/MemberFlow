@@ -120,6 +120,29 @@ class ApplicantVerificationTest extends EmailTestCase
         $this->assertNull($other->fresh()->email_verified_at);
     }
 
+    public function test_links_still_work_when_the_host_appends_its_i_parameter(): void
+    {
+        // InfinityFree's browser check reloads a visitor's first request with "i=1" appended.
+        $member = $this->onlineApplicant();
+        $status = $this->path($this->verification->statusUrl($member));
+        $verify = $this->path($this->verification->verificationUrl($member));
+
+        $this->get($status.'&i=1')->assertOk();
+        $this->get($verify.'&i=1')->assertOk()->assertSee('Your email is verified');
+        $this->assertNotNull($member->fresh()->email_verified_at);
+    }
+
+    public function test_ignoring_the_host_parameter_does_not_weaken_the_signature(): void
+    {
+        $member = $this->onlineApplicant();
+        $url = $this->path($this->verification->verificationUrl($member));
+
+        $this->get(preg_replace('/signature=([0-9a-f])/', 'signature=0$1', $url).'&i=1')->assertStatus(403);
+        $this->get(str_replace('expires=', 'expires=9', $url).'&i=1')->assertStatus(403);
+        $this->get($url.'&j=1')->assertStatus(403);                            // any other extra parameter still breaks it
+        $this->assertNull($member->fresh()->email_verified_at);
+    }
+
     public function test_expired_link_shows_the_expired_page(): void
     {
         $member = $this->onlineApplicant();

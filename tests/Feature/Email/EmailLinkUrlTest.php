@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Notification;
  */
 class EmailLinkUrlTest extends EmailTestCase
 {
-    private const LAN = 'http://192.168.100.4:8000';
+    private const LAN = 'http://192.168.50.10:8000';
 
     protected function setUp(): void
     {
@@ -64,7 +64,7 @@ class EmailLinkUrlTest extends EmailTestCase
 
         $url = $this->sentInvitationUrl();
 
-        $this->assertMatchesRegularExpression('#^http://192\.168\.100\.4:8000/invitations/[A-Za-z0-9]{64}$#', $url);
+        $this->assertMatchesRegularExpression('#^http://192.168.50.10:8000/invitations/[A-Za-z0-9]{64}$#', $url);
         $this->assertStringNotContainsString('127.0.0.1', $url);
         $this->get(parse_url($url, PHP_URL_PATH))->assertOk()->assertSee('Activate your account');
     }

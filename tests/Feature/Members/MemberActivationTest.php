@@ -365,6 +365,23 @@ class MemberActivationTest extends EmailTestCase
         $this->post('/login', ['email' => $newEmail, 'password' => 'Password123'])->assertRedirect(route('dashboard'));
     }
 
+    public function test_email_change_confirmation_works_when_the_host_appends_its_i_parameter(): void
+    {
+        $member = $this->walkIn();
+        $account = User::factory()->member($member)->create();
+        $newEmail = self::email('host.param');
+        $this->changeEmail($member, $newEmail)->assertSessionHas('success');
+        $url = app(MemberAccountService::class)->confirmationUrl($account->fresh(), $member->fresh());
+        $link = parse_url($url, PHP_URL_PATH).'?'.parse_url($url, PHP_URL_QUERY);
+
+        // Other extra parameters still invalidate the signature.
+        $this->actingAs($account->fresh())->get($link.'&j=1')->assertForbidden();
+        $this->assertNotSame($newEmail, $account->fresh()->email);
+
+        $this->actingAs($account->fresh())->get($link.'&i=1')->assertRedirect(route('dashboard'));
+        $this->assertSame($newEmail, $account->fresh()->email);
+    }
+
     public function test_confirmation_link_for_an_outdated_email_is_refused(): void
     {
         $member = $this->walkIn();

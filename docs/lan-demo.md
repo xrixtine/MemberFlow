@@ -1,7 +1,9 @@
 # MemberFlow — Same-Wi-Fi (LAN) demonstration and restore steps
 
+> `<PC-LAN-IP>` stands for this PC's Wi-Fi IPv4 address, for example `192.168.1.20`. Find it with `ipconfig` ("Wireless LAN adapter Wi-Fi" → IPv4 Address). It changes between networks and can change on the same network (DHCP), so check it on demo day.
+
 **Status (Nov 24, 2026):** the owner has been running MemberFlow on the LAN for phone testing:
-- `APP_URL` is `http://192.168.100.4:8000`, and `php artisan serve --host=0.0.0.0 --port=8000` is used;
+- `APP_URL` is `http://<PC-LAN-IP>:8000`, and `php artisan serve --host=0.0.0.0 --port=8000` is used;
 - `APP_DEBUG=false`;
 - **Google Maps was verified live on this LAN address** (the key accepts it).
 
@@ -13,11 +15,11 @@ Use LAN mode only after the local demo (on this PC, `http://127.0.0.1:8000`) wor
 
 | Item | Value | Note |
 |---|---|---|
-| Wi-Fi IPv4 address | `192.168.100.4` (/24) | Assigned by the router (DHCP). **Re-check on demo day** with `ipconfig` |
+| Wi-Fi IPv4 address | `<PC-LAN-IP>` (/24) | Assigned by the router (DHCP). **Re-check on demo day** with `ipconfig` |
 | Wi-Fi network profile | **Public** | Windows applies the stricter "Public" firewall profile on this network |
 | Firewall rules named "MemberFlow …" | none | If phones cannot connect, use Step 2 |
 | `APP_DEBUG` | `false` | Keep it `false` while other devices can reach the app |
-| Google Maps on `http://192.168.100.4:8000` | works | Verified in Chrome, Nov 24, 2026 |
+| Google Maps on `http://<PC-LAN-IP>:8000` | works | Verified in Chrome, Nov 24, 2026 |
 
 ## 2. Proposed configuration
 
@@ -35,7 +37,7 @@ This allows only devices on the same subnet to reach port 8000. Nothing is opene
 
 ### Step 3: `.env` (owner edits the file)
 ```
-APP_URL=http://192.168.100.4:8000
+APP_URL=http://<PC-LAN-IP>:8000
 APP_DEBUG=false
 ```
 Then:
@@ -51,13 +53,13 @@ php artisan queue:work            # only with QUEUE_CONNECTION=database; not nee
 ```
 
 ### Step 5: Google Maps (only if a Maps key is configured)
-Add `http://192.168.100.4:8000/*` to the key's HTTP-referrer restrictions in Google Cloud. Note that "Use my current location" does **not** work over plain HTTP on another device; tapping the map and typing coordinates still work.
+Add `http://<PC-LAN-IP>:8000/*` to the key's HTTP-referrer restrictions in Google Cloud. Note that "Use my current location" does **not** work over plain HTTP on another device; tapping the map and typing coordinates still work.
 
 ### Step 6: test device
 1. Connect the phone or laptop to the **same Wi-Fi**, and turn off mobile data so it can't use another network.
-2. Open `http://192.168.100.4:8000/apply` (public form) or `http://192.168.100.4:8000/login`.
-3. If it doesn't load, check that the server shows "Server running on [http://0.0.0.0:8000]", the IP is still `192.168.100.4`, the firewall rule exists, and the network profile matches the rule.
-4. Emails opened on the phone (Gmail app) now contain `http://192.168.100.4:8000/...` links that work on that network.
+2. Open `http://<PC-LAN-IP>:8000/apply` (public form) or `http://<PC-LAN-IP>:8000/login`.
+3. If it doesn't load, check that the server shows "Server running on [http://0.0.0.0:8000]", the IP is still `<PC-LAN-IP>`, the firewall rule exists, and the network profile matches the rule.
+4. Emails opened on the phone (Gmail app) now contain `http://<PC-LAN-IP>:8000/...` links that work on that network.
 
 ### Accounts during the demo
 - Use the fictional demo data (`php artisan db:seed --class=DemoDataSeeder` if wanted), and give fictional members Gmail "+" alias addresses of a test inbox you control (for example `yourtest+member1@gmail.com`) so their activation emails arrive on the phone.
@@ -74,7 +76,7 @@ Add `http://192.168.100.4:8000/*` to the key's HTTP-referrer restrictions in Goo
 4. Restart `php artisan queue:work` if you use `QUEUE_CONNECTION=database` (not needed with `sync`).
 5. If you changed the Wi-Fi profile to Private only for the demo, set it back to Public.
 6. Change the administrator password back from the throwaway one.
-7. Links emailed during the demo point to `192.168.100.4` and will no longer open on this PC. Resend invitations or verification emails if they are still needed.
+7. Links emailed during the demo point to `<PC-LAN-IP>` and will no longer open on this PC. Resend invitations or verification emails if they are still needed.
 
 ## 4. Safety summary
 

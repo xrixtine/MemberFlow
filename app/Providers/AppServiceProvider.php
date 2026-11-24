@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Models\UserInvitation;
 use App\Support\DatabaseSafety;
+use App\Support\HostingProxy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -37,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
 
         Password::defaults(fn () => Password::min(8)->letters()->mixedCase()->numbers());
+
+        // HTTPS behind a hosting proxy (no effect unless TRUSTED_PROXIES / FORCE_HTTPS are set).
+        HostingProxy::apply();
 
         Paginator::defaultView('vendor.pagination.memberflow');
 
